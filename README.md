@@ -33,7 +33,7 @@ splitflap/
 ### Prerequisites
 
 - Jave 21+
-- Node.js 20+
+- Node.js 24+
 
 ### Run the API
 
