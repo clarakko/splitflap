@@ -18,11 +18,11 @@ This document captures architectural patterns commonly used in backend developme
 
 ## 1. Layered Architecture (Current)
 
-**What we're using in SplitFlap Phase 1-3**
+### What we're using in SplitFlap Phase 1-3
 
-### Structure
+#### Structure
 
-```
+```text
 Controller → Service → Repository → Database
 ```
 
@@ -80,7 +80,7 @@ data class Display(
 - ❌ Doesn't scale well for complex domains
 - ❌ Tight coupling between layers
 
-### Best For
+### Best For (Layered Architecture)
 
 - CRUD APIs (like SplitFlap Phase 1-3)
 - Small to medium projects
@@ -91,15 +91,15 @@ data class Display(
 
 ## 2. Hexagonal Architecture (Ports & Adapters)
 
-**Popular in 2025 for domain-driven applications**
+***Popular in 2025 for domain-driven applications***
 
 ### Concept
 
 Isolate core business logic from external concerns (database, HTTP, messaging). The domain defines "ports" (interfaces), and adapters implement them.
 
-### Structure
+### Structure (Hexagonal)
 
-```
+```text
 ┌─────────────────────────────────────┐
 │        Application Core             │
 │  ┌──────────────────────────┐      │
@@ -115,7 +115,7 @@ Isolate core business logic from external concerns (database, HTTP, messaging). 
 └─────────┘   └─────────┘   └─────────┘
 ```
 
-### Code Example
+#### Code Example
 
 ```kotlin
 // Domain (core business logic - no framework dependencies)
@@ -206,7 +206,7 @@ class DisplayController(
 }
 ```
 
-### Pros
+#### Pros (Hexagonal Architecture)
 
 - ✅ Domain logic isolated from frameworks (Spring, JPA, etc.)
 - ✅ Easy to swap implementations (Postgres → MongoDB, REST → GraphQL)
@@ -214,14 +214,14 @@ class DisplayController(
 - ✅ Clear separation of concerns
 - ✅ Frameworks become plugins, not the foundation
 
-### Cons
+#### Cons (Hexagonal Architecture)
 
 - ❌ More boilerplate (interfaces everywhere)
 - ❌ Overkill for simple CRUD operations
 - ❌ Steeper learning curve
 - ❌ More files to navigate
 
-### Best For
+#### Best For (Hexagonal Architecture) (Hexagonal Architecture)
 
 - Complex domains with changing requirements
 - Long-lived applications
@@ -232,15 +232,15 @@ class DisplayController(
 
 ## 3. Vertical Slice Architecture
 
-**Trending in 2025 - organize by feature, not layer**
+### Trending in 2025 - organize by feature, not layer
 
-### Concept
+#### Concept (Vertical Slice)
 
 Instead of organizing by technical layer (controllers, services, repositories), organize by feature/use case. Each "slice" contains everything needed for one feature.
 
-### Structure
+#### Structure (Vertical Slice)
 
-```
+```text
 splitflap-api/src/main/kotlin/
 ├── features/
 │   ├── displays/
@@ -258,7 +258,7 @@ splitflap-api/src/main/kotlin/
     └── validation/
 ```
 
-### Code Example
+#### Code Example (Vertical Slice)
 
 ```kotlin
 // filepath: features/displays/GetDisplay.kt
@@ -329,7 +329,7 @@ class GetDisplayTest {
 // filepath: features/displays/create/CreateDisplayTest.kt
 ```
 
-### Pros
+#### Pros (Vertical Slice)
 
 - ✅ All related code in one place (easy to find)
 - ✅ Low coupling between features
@@ -338,14 +338,14 @@ class GetDisplayTest {
 - ✅ Clear boundaries (no accidental dependencies between features)
 - ✅ New developers can work on features without understanding entire codebase
 
-### Cons
+#### Cons (Vertical Slice)
 
 - ❌ Can duplicate code across slices (shared logic needs extraction)
 - ❌ Less familiar to traditional Spring developers
 - ❌ Harder to enforce cross-cutting concerns
 - ❌ Database entities might need to be shared
 
-### Best For
+#### Best For (Vertical Slice) (Vertical Slice Architecture)
 
 - Feature-rich applications
 - Teams working on different features simultaneously
@@ -356,15 +356,15 @@ class GetDisplayTest {
 
 ## 4. CQRS (Command Query Responsibility Segregation)
 
-**Common in 2025 for read-heavy or event-sourced systems**
+### Common in 2025 for read-heavy or event-sourced systems
 
-### Concept
+#### Concept (CQRS)
 
 Separate read (query) operations from write (command) operations. Can use different data models, databases, or even services for each.
 
-### Structure
+#### Structure (CQRS)
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Commands (Writes)                          │
 │  ┌─────────────────────────────────────┐   │
@@ -398,7 +398,7 @@ Separate read (query) operations from write (command) operations. Can use differ
 └─────────────────────────────────────────────┘
 ```
 
-### Code Example
+#### Code Example (CQRS)
 
 ```kotlin
 // Commands (write operations)
@@ -523,7 +523,7 @@ class DisplayController(
 }
 ```
 
-### Pros
+#### Pros (CQRS)
 
 - ✅ Optimized read/write models separately
 - ✅ Scales reads independently from writes (different databases)
@@ -531,7 +531,7 @@ class DisplayController(
 - ✅ Great for event sourcing
 - ✅ Can handle high read loads (replicated read databases)
 
-### Cons
+#### Cons (CQRS)
 
 - ❌ Significant complexity
 - ❌ Eventual consistency challenges (read model lags behind writes)
@@ -539,7 +539,7 @@ class DisplayController(
 - ❌ Overkill for most applications
 - ❌ Harder to debug
 
-### Best For
+#### Best For (CQRS) (CQRS)
 
 - High-scale systems (Netflix, Amazon scale)
 - Event-sourced applications
@@ -550,15 +550,15 @@ class DisplayController(
 
 ## 5. Functional Core, Imperative Shell
 
-**Growing in Kotlin/Scala communities (2025)**
+### Growing in Kotlin/Scala communities (2025)
 
-### Concept
+#### Concept (Functional Core)
 
 Separate pure functions (no side effects) from impure functions (I/O, database, HTTP). The "core" is pure business logic, the "shell" handles all side effects.
 
-### Structure
+#### Structure (Functional Core)
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  Functional Core (Pure Functions)       │
 │  - No side effects                      │
@@ -578,7 +578,7 @@ Separate pure functions (no side effects) from impure functions (I/O, database, 
 └─────────────────────────────────────────┘
 ```
 
-### Code Example
+#### Code Example (Functional Core)
 
 ```kotlin
 // Pure functions (functional core - no side effects)
@@ -706,7 +706,7 @@ class DisplayCoreTest {
 }
 ```
 
-### Pros
+#### Pros (Functional Core)
 
 - ✅ Pure functions are extremely easy to test (no mocks, no setup)
 - ✅ Business logic has no dependencies (framework-agnostic)
@@ -714,14 +714,14 @@ class DisplayCoreTest {
 - ✅ Functions are reusable across contexts
 - ✅ Refactoring is safer (pure functions can't break side effects)
 
-### Cons
+#### Cons (Functional Core)
 
 - ❌ Requires functional programming mindset
 - ❌ Can feel awkward in Spring Boot (framework is imperative)
 - ❌ Not all logic can be made pure
 - ❌ Team needs to understand the pattern
 
-### Best For
+#### Best For (Functional Core) (Functional Core, Imperative Shell)
 
 - Complex business rules that need extensive testing
 - Fintech applications (calculations, validations)
@@ -732,15 +732,15 @@ class DisplayCoreTest {
 
 ## 6. Event-Driven Architecture
 
-**Very popular in 2025 for distributed systems and real-time applications**
+### Very popular in 2025 for distributed systems and real-time applications
 
-### Concept
+#### Concept (Event-Driven)
 
 Services communicate through events rather than direct calls. When something happens (event), multiple services can react independently.
 
-### Structure
+#### Structure (Event-Driven)
 
-```
+```text
 ┌──────────────────┐       Event        ┌──────────────────┐
 │  Display Service │  ─────────────────> │   Event Bus      │
 │  (Publisher)     │   DisplayCreated    │  (Kafka/Redis)   │
@@ -756,7 +756,7 @@ Services communicate through events rather than direct calls. When something hap
                  └─────────────────┘    └─────────────────┘  └─────────────────┘
 ```
 
-### Code Example
+### Code Example (Event driven)
 
 ```kotlin
 // Domain Event
@@ -974,7 +974,7 @@ class AnalyticsMicroservice {
 }
 ```
 
-### Pros
+#### Pros (Event-Driven)
 
 - ✅ Loose coupling between services (services don't know about each other)
 - ✅ Easy to add new features (just add a new listener)
@@ -983,7 +983,7 @@ class AnalyticsMicroservice {
 - ✅ Resilient (if one listener fails, others still work)
 - ✅ Perfect for real-time updates (WebSocket notifications)
 
-### Cons
+#### Cons (Event-Driven)
 
 - ❌ Debugging is harder (async flows, distributed traces)
 - ❌ Eventual consistency (events processed asynchronously)
@@ -991,7 +991,7 @@ class AnalyticsMicroservice {
 - ❌ Ordering guarantees can be complex
 - ❌ Need monitoring/observability tools
 
-### Best For
+#### Best For (Event-Driven) (Event-Driven Architecture)
 
 - Microservices architectures
 - Real-time systems (like SplitFlap Phase 5 - WebSockets)
@@ -1005,6 +1005,7 @@ class AnalyticsMicroservice {
 ### Phase 1-3: Stick with Layered Architecture ✅
 
 **Current architecture is perfect because:**
+
 - Simple CRUD operations
 - Small codebase (easy to navigate)
 - Fast to implement
@@ -1049,6 +1050,7 @@ class WebSocketNotifier {
 ```
 
 **Benefits for Phase 5:**
+
 - ✅ Clean separation (business logic doesn't know about WebSockets)
 - ✅ Easy to add other listeners (analytics, logging, etc.)
 - ✅ Testable (can test display updates without WebSocket code)
@@ -1072,6 +1074,7 @@ features/
 ```
 
 **Benefits:**
+
 - ✅ Multiple developers can work without conflicts
 - ✅ Easy to understand feature scope
 - ✅ Can extract features to microservices later
@@ -1079,6 +1082,7 @@ features/
 ### Don't Over-Engineer Early
 
 **Avoid these patterns in Phase 1-4:**
+
 - ❌ Hexagonal Architecture (too much boilerplate for CRUD)
 - ❌ CQRS (no high-scale read requirements)
 - ❌ Functional Core (business logic is simple)
