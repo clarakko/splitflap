@@ -1,5 +1,26 @@
 # Kotlin/Spring Boot API Coding Standards
 
+## Project Structure
+
+**IMPORTANT:** This project is a monorepo. The Kotlin API is in the `splitflap-api/` directory.
+
+### Running Gradle Commands
+
+**ALWAYS** navigate to the `splitflap-api/` directory before running Gradle commands:
+
+```bash
+# ✅ Correct - Always cd to splitflap-api first
+cd /Users/clara.devers/workspace/catalyst/splitflap/splitflap-api
+./gradlew build
+./gradlew test
+./gradlew bootRun
+
+# ❌ Wrong - Running from repo root will fail
+./gradlew build  # gradlew not found!
+```
+
+The `gradlew` wrapper is located in `splitflap-api/`, not the repository root.
+
 ## General Principles
 
 - Follow Kotlin idioms and conventions

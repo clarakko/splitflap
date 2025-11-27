@@ -17,17 +17,18 @@ Project scaffolding
 - Copilot instructions
 - Spring Boot project initialization (splitflap-api)
 - React Project initialization (splitflap-web)
+- Define initial data model
+- Create first REST endpoint
 
 ## In Progress
 
+- Setup React + Vite minimalist front-end
+  
 ## Blocked
 
 - (none)
 
 ## Next up
 
-- Setup React + Vite minimalist front-end
-- Define initial data model
-- Create first REST endpoint
 - Build basic flip animation component
   

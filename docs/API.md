@@ -42,8 +42,8 @@ Retrieve a display configuration and content by ID.
   "content": {
     "rows": [
       ["TIME", "DESTINATION", "PLATFORM", "STATUS"],
-      ["10:30", "BOSTON", "3", "ON TIME"],
-      ["10:45", "NEW YORK", "5", "DELAYED"]
+      ["10:30", "OTTAWA", "3", "ON TIME"],
+      ["10:45", "HALIFAX", "5", "DELAYED"]
     ]
   },
   "config": {

@@ -2,11 +2,11 @@
 
 ## Phase 1: MVP
 
+- [X] Backend serves display content via REST endpoint
+- [ ] Frontend fetches and displays data from API
 - [ ] Basic flip animation in React
 - [ ] Single display with hardcoded rows
-- [ ] Backend serves display content via REST endpoint
 - [ ] Frontend renders split-flap animation
-- [ ] Frontend fetches and displays data from API
 
 ## Phase 2: Persistence
 
