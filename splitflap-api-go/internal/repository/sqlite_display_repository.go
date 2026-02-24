@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
 	"splitflap-api-go/internal/model"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (

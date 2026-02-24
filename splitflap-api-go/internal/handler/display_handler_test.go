@@ -8,11 +8,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
 	"splitflap-api-go/internal/middleware"
 	"splitflap-api-go/internal/model"
 	"splitflap-api-go/internal/repository"
 	"splitflap-api-go/internal/service"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const testSchemaSQL = `-- SplitFlap Display Database Schema
@@ -363,4 +364,3 @@ func TestCORSAllowedOrigin(t *testing.T) {
 		t.Fatalf("expected Access-Control-Allow-Origin to echo origin, got %q", origin)
 	}
 }
-

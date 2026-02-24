@@ -8,12 +8,13 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "github.com/mattn/go-sqlite3"
 	"splitflap-api-go/internal/handler"
 	"splitflap-api-go/internal/middleware"
 	"splitflap-api-go/internal/model"
 	"splitflap-api-go/internal/repository"
 	"splitflap-api-go/internal/service"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const schemaSQL = `-- SplitFlap Display Database Schema
