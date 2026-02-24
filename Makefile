@@ -29,7 +29,7 @@ api-test:
 # Frontend Commands
 frontend-start:
 	@echo "Starting frontend development server..."
-	cd splitflap-web-react && pnpm dev
+	cd splitflap-web-solid && pnpm dev
 
 frontend-test:
 	@echo "Running frontend tests..."
