@@ -9,9 +9,8 @@ help:
 	@echo "  make api-test        - Run API tests"
 	@echo ""
 	@echo "Frontend Commands:"
-	@echo "  make frontend-start  - Start the React development server"
+	@echo "  make frontend-start  - Start the SolidJS development server"
 	@echo "  make frontend-test   - Run frontend tests"
-	@echo "  make frontend-lint   - Run frontend linter"
 	@echo "  make frontend-build  - Build frontend for production"
 	@echo ""
 	@echo "Combined Commands:"
@@ -30,19 +29,15 @@ api-test:
 # Frontend Commands
 frontend-start:
 	@echo "Starting frontend development server..."
-	cd splitflap-web-react && npm run dev
+	cd splitflap-web-react && pnpm dev
 
 frontend-test:
 	@echo "Running frontend tests..."
-	cd splitflap-web-react && npm test
-
-frontend-lint:
-	@echo "Running frontend linter..."
-	cd splitflap-web-react && npm run lint
+	cd splitflap-web-solid && pnpm test
 
 frontend-build:
 	@echo "Building frontend for production..."
-	cd splitflap-web-react && npm run build
+	cd splitflap-web-solid && pnpm build
 
 # Combined Commands
 all-tests: api-test frontend-test
@@ -52,5 +47,5 @@ all-tests: api-test frontend-test
 clean:
 	@echo "Cleaning build artifacts..."
 	cd splitflap-api-go && go clean -testcache
-	cd splitflap-web-react && rm -rf dist node_modules/.vite
+	cd splitflap-web-solid && rm -rf dist node_modules/.vite
 	@echo "Clean complete!"

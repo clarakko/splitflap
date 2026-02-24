@@ -1,12 +1,12 @@
-# React/TypeScript Web Coding Standards
+# SolidJS/TypeScript Web Coding Standards
 
 ## General Principles
 
-- Functional components with hooks (no class components)
+- Functional components with signals and effects
 - TypeScript for type safety
 - Keep components small and focused
 - Colocate related files (component + styles + tests)
-- Follow React best practices
+- Follow SolidJS best practices
 
 ## Code Style
 
@@ -31,7 +31,7 @@ src/
 │       ├── DisplayPreview.tsx
 │       └── DisplayPreview.module.css
 ├── hooks/
-│   └── useFetchDisplay.ts
+│   └── createFetchDisplay.ts        # Resource factory
 ├── types/
 │   └── api.ts                       # API response types
 └── utils/
@@ -50,10 +50,10 @@ interface SplitFlapCellProps {
   onFlipComplete?: () => void;
 }
 
-export function SplitFlapCell({ 
-  targetChar, 
+export function SplitFlapCell({
+  targetChar,
   flipDuration = 100,
-  onFlipComplete 
+  onFlipComplete,
 }: SplitFlapCellProps) {
   // Implementation
 }
@@ -90,58 +90,97 @@ interface CellState {
 }
 ```
 
-## React Patterns
+## SolidJS Patterns
 
 ### Functional Components
 
 ```typescript
-// ✅ Good: Arrow function for named export
-export const SplitFlapCell = ({ targetChar }: SplitFlapCellProps) => {
-  const [currentChar, setCurrentChar] = useState(' ');
-  
+// ✅ Good: SolidJS component function
+export const SplitFlapCell = (props: SplitFlapCellProps) => {
+  const [currentChar, setCurrentChar] = createSignal(' ');
+
   // Implementation
-  
-  return <div className={styles.cell}>{currentChar}</div>;
+
+  return <div class={styles.cell}>{currentChar()}</div>;
 };
 ```
 
-### Custom Hooks
+### Signals and Effects
 
 ```typescript
-// ✅ Good: Extract reusable logic
-export function useFlipAnimation(targetChar: string, duration: number) {
-  const [currentChar, setCurrentChar] = useState(' ');
-  const [isFlipping, setIsFlipping] = useState(false);
-  
-  useEffect(() => {
-    // Animation logic
-  }, [targetChar, duration]);
-  
-  return { currentChar, isFlipping };
+// ✅ Good: Use signals for reactive state
+import { createSignal, createEffect } from 'solid-js';
+
+export function SplitFlapCell(props: SplitFlapCellProps) {
+  const [currentChar, setCurrentChar] = createSignal(' ');
+  const [isFlipping, setIsFlipping] = createSignal(false);
+
+  // Track target changes
+  createEffect(() => {
+    const target = props.targetChar();
+    if (currentChar() === target) return;
+
+    const flipPath = calculateFlipPath(currentChar(), target);
+    let step = 0;
+
+    setIsFlipping(true);
+    const interval = setInterval(() => {
+      if (step >= flipPath.length) {
+        clearInterval(interval);
+        setIsFlipping(false);
+        return;
+      }
+
+      setCurrentChar(flipPath[step]);
+      step++;
+    }, props.flipDuration ?? 100);
+  });
+
+  return (
+    <div class={styles.cell} data-flipping={isFlipping()}>
+      {currentChar()}
+    </div>
+  );
+}
+```
+
+### Resource API for Data Fetching
+
+```typescript
+// ✅ Good: Use createResource for async operations
+import { createResource } from 'solid-js';
+
+export function createFetchDisplay(displayId: () => string) {
+  const [display, { refetch }] = createResource(displayId, async (id) => {
+    const response = await fetch(`/api/v1/displays/${id}`);
+    props: SplitFlapCellProps) => (
+  <div class={styles.cell}>
+    <div class={styles.flap}>{props.targetChar}etch display: ${response.status}`);
+    }
+
+    return response.json() as Promise<Display>;
+  });
+
+  return { display, refetch };
 }
 
 // Usage in component
-const { currentChar, isFlipping } = useFlipAnimation(targetChar, 100);
-```
+export function DisplayPreview(props: { displayId: () => string }) {
+  const { display } = createFetchDisplay(props.displayId);
 
-### Data Fetching
-
-```typescript
-// ✅ Good: Custom hook for API calls
-export function useFetchDisplay(displayId: string) {
-  const [data, setData] = useState<Display | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  
-  useEffect(() => {
-    fetch(`/api/v1/displays/${displayId}`)
-      .then(res => res.json())
-      .then(setData)
-      .catch(setError)
-      .finally(() => setLoading(false));
-  }, [displayId]);
-  
-  return { data, loading, error };
+  return (
+    <>
+      <Show when={display.loading}>
+        <div>Loading...</div>
+      </Show>
+      <Show when={display.error}>
+        <div>Error: {display.error.message}</div>
+      </Show>
+      <Show when={display()}>
+        {(data) => <div>{data().id}</div>}
+      </Show>
+    </>
+  );
 }
 ```
 
@@ -177,38 +216,40 @@ export const SplitFlapCell = () => (
   color: #fff;
   animation: flip 0.1s ease-in-out;
 }
+ with createEffect
+import { createEffect } from 'solid-js';
 
-@keyframes flip {
-  0% { transform: rotateX(0deg); }
-  50% { transform: rotateX(90deg); }
-  100% { transform: rotateX(0deg); }
+createEffect(() => {
+  if (currentChar() === targetChar()) return;
+
+  const flipPath = calculateFlipPath(currentChar(), targetChar());
+  let step = 0;
+  setIsFlipping(true);
+
+  const interval = setInterval(() => {
+    if (step >= flipPath.length) {
+      clearInterval(interval);
+      setIsFlipping(false);
+      return;
+    }
+
+    setCurrentChar(flipPath[step]);
+    step++;
+  }, flipDuration());
+
+  // Cleanup: Clear interval on unmount
+  return () => clearInterval(interval);
 }
-```
-
-## Animation Logic
-
-### Character Set
-
-```typescript
-// Phase 1: Alphanumeric only
-const CHAR_SET = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-
-function getCharIndex(char: string): number {
-  return CHAR_SET.indexOf(char.toUpperCase());
-}
-
-function calculateFlipPath(from: string, to: string): string[] {
-  const fromIdx = getCharIndex(from);
   const toIdx = getCharIndex(to);
   const path: string[] = [];
-  
+
   // Calculate shortest circular path
   let current = fromIdx;
   while (current !== toIdx) {
     current = (current + 1) % CHAR_SET.length;
     path.push(CHAR_SET[current]);
   }
-  
+
   return path;
 }
 ```
@@ -219,23 +260,23 @@ function calculateFlipPath(from: string, to: string): string[] {
 // ✅ Good: Step through character set
 useEffect(() => {
   if (currentChar === targetChar) return;
-  
+
   const flipPath = calculateFlipPath(currentChar, targetChar);
   let step = 0;
-  
+
   const interval = setInterval(() => {
     if (step >= flipPath.length) {
       clearInterval(interval);
       setIsFlipping(false);
       return;
     }
-    
+
     setCurrentChar(flipPath[step]);
     step++;
   }, flipDuration);
-  
+
   setIsFlipping(true);
-  
+
   return () => clearInterval(interval);
 }, [targetChar, currentChar, flipDuration]);
 ```
@@ -246,15 +287,15 @@ useEffect(() => {
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import solidPlugin from "vite-plugin-solid";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [solidPlugin()],
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
+      "/api": {
+        target: "http://localhost:8080",
         changeOrigin: true,
       },
     },
@@ -266,15 +307,15 @@ export default defineConfig({
 
 ```typescript
 // utils/api.ts
-const API_BASE = '/api/v1';
+const API_BASE = "/api/v1";
 
 export async function fetchDisplay(id: string): Promise<Display> {
   const response = await fetch(`${API_BASE}/displays/${id}`);
-  
+
   if (!response.ok) {
     throw new Error(`Failed to fetch display: ${response.status}`);
   }
-  
+
   return response.json();
 }
 ```
@@ -285,20 +326,22 @@ export async function fetchDisplay(id: string): Promise<Display> {
 
 ```typescript
 // SplitFlapCell.test.tsx
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from 'solid-testing-library';
 import { SplitFlapCell } from './SplitFlapCell';
 
 describe('SplitFlapCell', () => {
   it('renders initial character', () => {
-    render(<SplitFlapCell targetChar="A" />);
+    render(() => <SplitFlapCell targetChar={() => 'A'} flipDuration={100} />);
     expect(screen.getByText('A')).toBeInTheDocument();
   });
-  
+
   it('flips to target character', async () => {
-    const { rerender } = render(<SplitFlapCell targetChar="A" />);
-    
-    rerender(<SplitFlapCell targetChar="C" />);
-    
+    const [target, setTarget] = createSignal('A');
+
+    render(() => <SplitFlapCell targetChar={target} flipDuration={50} />);
+
+    setTarget('C');
+
     await waitFor(() => {
       expect(screen.getByText('C')).toBeInTheDocument();
     });
@@ -306,26 +349,48 @@ describe('SplitFlapCell', () => {
 });
 ```
 
-## Performance
+it('renders initial character', () => {
+render(() => <SplitFlapCell targetChar={() => 'A'} flipDuration={100} />);
+expect(screen.getByText('A')).toBeInTheDocument();
+});
 
-### Memoization
+it('flips to target character', async () => {
+const [target, setTarget] = createSignal('A');
+
+    render(() => <SplitFlapCell targetChar={target} flipDuration={50} />);
+
+    setTarget('C'l targetChar="A" />);
+
+    rerender(<SplitFlapCell targetChar="C" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('C')).toBeInTheDocument();
+    });
+
+});
+});
+
+````with Derived Signals
 
 ```typescript
-// ✅ Good: Memoize expensive calculations
-const flipPath = useMemo(
-  () => calculateFlipPath(currentChar, targetChar),
-  [currentChar, targetChar]
+// ✅ Good: Derived signals only recalculate when deps change
+import { createMemo } from 'solid-js';
+
+const flipPath = createMemo(() =>
+  calculateFlipPath(currentChar(), targetChar())
 );
 
-// ✅ Good: Memoize callbacks
-const handleFlipComplete = useCallback(() => {
-  console.log('Flip complete');
-}, []);
-```
+// Memoization is automatic in SolidJS - avoid premature optimization
+````
 
-### Avoid Unnecessary Renders
+### Avoid Unnecessary Reactivity
 
 ```typescript
+// ✅ Good: Only reactive when needed
+export const SplitFlapCell = (props: SplitFlapCellProps) => {
+  // SolidJS optimizes renders automatically
+  // No need for memo unless component is truly expensive
+}`typescript
 // ✅ Good: memo for pure components
 export const SplitFlapCell = memo(({ targetChar }: SplitFlapCellProps) => {
   // Component logic
@@ -334,18 +399,17 @@ export const SplitFlapCell = memo(({ targetChar }: SplitFlapCellProps) => {
 
 ## Dependencies
 
-### Phase 1 Only Use
+solid-js`
 
-- `react`
-- `react-dom`
+- `vite-plugin-solid`
 - Vite defaults (no additional libraries)
 
 ### Don't Add Yet
 
-- ❌ State management (Redux/Zustand) - Phase 2+
-- ❌ Routing (React Router) - Phase 3+
-- ❌ UI libraries (MUI/Chakra) - Build custom components
-- ❌ Animation libraries (Framer Motion) - Use CSS animations
+- ❌ State management (Pinia/Nanostores) - Phase 2+
+- ❌ Routing (Solid Router) - Phase 3+
+- ❌ UI libraries - Build custom components
+- ❌ Animation libraries - Use CSS animations
 
 ## Code Comments
 
@@ -376,11 +440,13 @@ docs(web): add animation architecture comments
 ## Phase Discipline
 
 **DO:**
+
 - ✅ Build flip animation for Phase 1
-- ✅ Fetch from hardcoded `/api/v1/displays/demo`
+- ✅ Fetch from hardcoded `/api/v1/signals/effects
 - ✅ Keep state management simple (useState/useEffect)
 
 **DON'T:**
+
 - ❌ Add builder UI (Phase 2-3)
 - ❌ Add routing (Phase 3)
 - ❌ Add WebSocket support (Phase 5)

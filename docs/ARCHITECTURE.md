@@ -5,22 +5,22 @@
 SplitFlap is a three-tier web application for creating and embedding animated split-flap displays.
 
 ```
-┌─────────────────┐
-│  splitflap-web  │  React builder app (Phase 2+)
-│   (Port 5173)   │
-└────────┬────────┘
-         │ HTTP REST
-         ▼
-┌─────────────────┐
-│ splitflap-api   │  Go stdlib backend
-│   (Port 8080)   │
-└────────┬────────┘
-         │ (Phase 2: JPA)
-         ▼
-┌─────────────────┐
-│   Database      │  H2 (dev) / Postgres (prod)
-│                 │  Not used in Phase 1
-└─────────────────┘
+┌───────────────────────┐
+│ splitflap-web-solid   │  SolidJS builder app (Phase 2+)
+│    (Port 5173)        │
+└──────────┬────────────┘
+           │ HTTP REST
+           ▼
+┌───────────────────────┐
+│  splitflap-api-go     │  Go stdlib backend
+│    (Port 8080)        │
+└──────────┬────────────┘
+           │ (Phase 2: SQL)
+           ▼
+┌───────────────────────┐
+│   Database            │  H2 (dev) / Postgres (prod)
+│                       │  Not used in Phase 1
+└───────────────────────┘
 
 ┌─────────────────┐
 │splitflap-embed  │  Web component (Phase 4)
@@ -42,7 +42,7 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 ### In Scope
 
 - ✅ Single hardcoded display served via REST API
-- ✅ Kotlin/Spring Boot REST controller
+- ✅ Go REST controller
 - ✅ JSON response with display grid data
 - ✅ Basic error handling (404 for missing display)
 - ✅ CORS configuration for local dev
@@ -51,7 +51,7 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 
 - ❌ Database persistence (Phase 2)
 - ❌ Display CRUD operations (Phase 2)
-- ❌ React builder UI (Phase 2-3)
+- ❌ SolidJS builder UI (Phase 2-3)
 - ❌ Web component embed (Phase 4)
 - ❌ Real-time updates (Phase 5)
 - ❌ External data sources (Phase 6)
@@ -61,7 +61,7 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 
 ## Technology Stack
 
-### Backend (splitflap-api)
+### Backend (splitflap-api-go)
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
@@ -74,7 +74,7 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| React | TBD | UI framework |
+| SolidJS | TBD | UI framework |
 | Vite | TBD | Build tool |
 | TypeScript | TBD | Type safety |
 
@@ -130,13 +130,13 @@ splitflap-api-go/
 ```
 1. GET /api/v1/displays/demo
    ↓
-2. DisplayController.getDisplay("demo")
+2. Handler routes request to service
    ↓
-3. DisplayService.getDisplay("demo")
+3. DisplayService.GetDisplay("demo")
    ↓
 4. Return hardcoded Display object
    ↓
-5. Jackson serializes to JSON
+5. encoding/json serializes to JSON
    ↓
 6. HTTP 200 with JSON body
 ```
@@ -222,37 +222,14 @@ Backend serves **target state** only. Frontend owns **animation state**.
 
 ## Configuration
 
-### application.yaml (Phase 1)
-
-```yaml
-spring:
-  application:
-    name: splitflap-api
-  
-  # Phase 2: Database config will go here
-  # datasource:
-  #   url: jdbc:h2:mem:splitflap
-  #   driver-class-name: org.h2.Driver
-  
-server:
-  port: 8080
-
-# Phase 1: Enable CORS for local frontend dev
-# (Will be configured via CorsConfig.kt)
-```
-
 ### CORS Configuration (Phase 1)
 
-```kotlin
-@Configuration
-class CorsConfig : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/api/v1/**")
-            .allowedOrigins("http://localhost:5173", "http://localhost:3000")
-            .allowedMethods("GET")
-            .allowedHeaders("*")
-    }
-}
+CORS is configured in the Go handler middleware to allow requests from the local Vite dev server:
+
+```go
+w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 ```
 
 ---
@@ -261,9 +238,9 @@ class CorsConfig : WebMvcConfigurer {
 
 ### Phase 1 → Phase 2
 **Changes:**
-- Add `@Entity` to Display model
-- Add `@Repository` interface for DisplayRepository
-- Add H2 database configuration
+- Add database model tags to Display struct
+- Create DisplayRepository interface
+- Add Postgres connection pool configuration
 - Seed database with demo display
 - Service layer queries database instead of returning hardcoded data
 
@@ -380,18 +357,22 @@ class CorsConfig : WebMvcConfigurer {
 
 ### Backend Testing (Phase 1)
 
-```kotlin
-@WebMvcTest(DisplayController::class)
-class DisplayControllerTest {
+```go
+func TestGetDisplay(t *testing.T) {
+    tests := []struct {
+        name           string
+        displayID      string
+        expectedStatus int
+    }{
+        {"get demo display", "demo", http.StatusOK},
+        {"get unknown display", "unknown", http.StatusNotFound},
+    }
     
-    @Test
-    fun `GET demo display returns 200`()
-    
-    @Test
-    fun `GET unknown display returns 404`()
-    
-    @Test
-    fun `Response matches JSON schema`()
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            // Test implementation
+        })
+    }
 }
 ```
 
@@ -427,8 +408,8 @@ Follow spec-first approach:
 
 ---
 
-## Deployment (Future)
-
+## go run ./cmd/api/main.go` for backend
+- `pnpm
 ### Phase 1-2
 - Local development only
 - `./gradlew bootRun` for backend

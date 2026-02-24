@@ -15,8 +15,8 @@ Project scaffolding
 - LICENSE.md
 - Documentation (ARCHITECTURE.md, API.md, DATA_MODEL.md)
 - Copilot instructions
-- Spring Boot project initialization (splitflap-api)
-- React Project initialization (splitflap-web)
+- Go project initialization (splitflap-api-go)
+- SolidJS Project initialization (splitflap-web-solid)
 - Define initial data model
 - Create first REST endpoint
 

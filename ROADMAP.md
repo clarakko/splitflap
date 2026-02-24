@@ -4,7 +4,7 @@
 
 - [X] Backend serves display content via REST endpoint
 - [ ] Frontend fetches and displays data from API
-- [ ] Basic flip animation in React
+- [ ] Basic flip animation in SolidJS
 - [ ] Single display with hardcoded rows
 - [ ] Frontend renders split-flap animation
 

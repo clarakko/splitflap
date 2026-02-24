@@ -1,190 +1,240 @@
-# Kotlin/Spring Boot API Coding Standards
+# Go API Coding Standards
 
 ## Project Structure
 
-**IMPORTANT:** This project is a monorepo. The Kotlin API is in the `splitflap-api/` directory.
+**IMPORTANT:** This project is a monorepo. The Go API is in the `splitflap-api-go/` directory.
 
-### Running Gradle Commands
+### Running Go Commands
 
-**ALWAYS** navigate to the `splitflap-api/` directory before running Gradle commands:
+**ALWAYS** navigate to the `splitflap-api-go/` directory before running Go commands:
 
 ```bash
-# ✅ Correct - Always cd to splitflap-api first
-cd /Users/clara.devers/workspace/catalyst/splitflap/splitflap-api
-./gradlew build
-./gradlew test
-./gradlew bootRun
+# ✅ Correct - Always cd to splitflap-api-go first
+cd /Users/clara.devers/workspace/catalyst/splitflap/splitflap-api-go
+go build ./cmd/api
+go test ./...
+go run ./cmd/api/main.go
 
 # ❌ Wrong - Running from repo root will fail
-./gradlew build  # gradlew not found!
+go build ./cmd/api  # Will look for wrong path!
 ```
-
-The `gradlew` wrapper is located in `splitflap-api/`, not the repository root.
 
 ## General Principles
 
-- Follow Kotlin idioms and conventions
-- Prefer immutability (val over var)
-- Use data classes for DTOs
-- Keep functions small and focused
-- Write self-documenting code with clear names
+- Follow Go conventions from effective_go.md
+- Prefer composition over inheritance
+- Use interfaces for loose coupling
+- Keep functions focused and testable
+- Write clear, idiomatic code
 
 ## Code Style
 
 ### Naming Conventions
 
-- Classes: PascalCase (`DisplayController`, `DisplayService`)
-- Functions: camelCase (`getDisplay`, `findById`)
-- Constants: UPPER_SNAKE_CASE (`MAX_ROW_COUNT`)
-- Packages: lowercase (`dev.clarakko.splitflap_api.controller`)
+- Types/Functions: PascalCase for exported (`GetDisplay`), camelCase for unexported (`getDisplay`)
+- Constants: PascalCase for exported (`MaxRowCount`)
+- Packages: single lowercase word (`handler`, `service`, `model`)
+- Interfaces: PascalCase ending in -er (`Fetcher`, `Writer`)
 
 ### File Organization
 
-```kotlin
+```go
 // 1. Package declaration
-package dev.clarakko.splitflap_api.controller
+package handler
 
-// 2. Imports (organized by: stdlib, third-party, project)
-import org.springframework.web.bind.annotation.*
-import dev.clarakko.splitflap_api.service.DisplayService
+// 2. Imports (organized: stdlib, third-party, project)
+import (
+	"encoding/json"
+	"net/http"
 
-// 3. Class declaration
-@RestController
-@RequestMapping("/api/v1/displays")
-class DisplayController(
-    private val displayService: DisplayService
-) {
-    // Implementation
+	"splitflap/internal/service"
+)
+
+// 3. Types
+type DisplayHandler struct {
+	service *service.DisplayService
+}
+
+// 4. Functions
+func (h *DisplayHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Implementation
 }
 ```
 
-## Spring Boot Patterns
+## Go Patterns
 
-### Controllers
+### Handlers
 
-- Use constructor injection (no @Autowired)
-- Return `ResponseEntity<T>` for explicit status codes
-- Use `@PathVariable`, `@RequestBody` annotations
-- Keep controllers thin - delegate to services
+- Implement `http.Handler` interface or use `http.HandlerFunc`
+- Accept `http.ResponseWriter` and `*http.Request`
+- Extract path variables manually or with string manipulation
+- Keep handlers thin - delegate to services
 
-```kotlin
-@RestController
-@RequestMapping("/api/v1/displays")
-class DisplayController(private val service: DisplayService) {
-    
-    @GetMapping("/{id}")
-    fun getDisplay(@PathVariable id: String): ResponseEntity<Display> {
-        return service.getDisplay(id)
-            ?.let { ResponseEntity.ok(it) }
-            ?: ResponseEntity.notFound().build()
-    }
+```go
+type DisplayHandler struct {
+	service *service.DisplayService
+}
+
+func (h *DisplayHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/displays/")
+
+	display := h.service.GetDisplay(id)
+	if display == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(display)
 }
 ```
 
 ### Services
 
-- Annotate with `@Service`
 - Contain business logic
-- Return domain objects or nulls (not ResponseEntity)
+- Return domain objects or nil (not error for missing data)
+- Use dependency injection via constructor
 
-```kotlin
-@Service
-class DisplayService {
-    fun getDisplay(id: String): Display? {
-        // Business logic here
-    }
+```go
+type DisplayService struct {
+	// Dependencies
+}
+
+func (s *DisplayService) GetDisplay(id string) *Display {
+	// Business logic here
+	return nil
 }
 ```
 
-### DTOs
+### Models
 
-- Use data classes
-- Keep them in dedicated `dto` package
-- Match JSON structure exactly
+- Use structs with JSON tags
+- Keep in dedicated `model` package
+- Match API response structure exactly
 
-```kotlin
-data class Display(
-    val id: String,
-    val content: DisplayContent,
-    val config: DisplayConfig
-)
+```go
+type Display struct {
+	ID      string          `json:"id"`
+	Content DisplayContent  `json:"content"`
+	Config  DisplayConfig   `json:"config"`
+}
+
+type DisplayContent struct {
+	Rows [][]string `json:"rows"`
+}
+
+type DisplayConfig struct {
+	RowCount int `json:"rowCount"`
+	ColCount int `json:"columnCount"`
+}
 ```
 
 ## Error Handling
 
 ### Phase 1
 
-- Return `ResponseEntity.notFound()` for missing resources
-- Let Spring handle 500 errors
+- Return 404 for missing resources
+- Log errors and return 500 for unexpected errors
+- Keep error handling simple
 
-### Future Phases
+````go
+if display == nil {
+	w.WriteHeader(http.StatusNotFound)
+	return
+}
 
-- Use `@ControllerAdvice` for global exception handling
-- Create custom exception classes
-- Return consistent error response format
+if err != nil {
+	w.WriteHeader(http.StatusInternalServerError)
+	log.Printf("Error: %v", err)
+	returtesting package from stdlib
+- Test file naming: `{filename}_test.go`
+- Use table-driven tests
+- Mock dependencies via interfaces
 
-## Testing
+```go
+func TestDisplayHandler_GetExisting(t *testing.T) {
+	tests := []struct {
+		name           string
+		displayID      string
+		expectedStatus int
+	}{
+		{"demo exists", "demo", http.StatusOK},
+		{"unknown display", "unknown", http.StatusNotFound},
+	}
 
-### Unit Tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := &service.DisplayService{}
+			handler := &DisplayHandler{service: service}
 
-- Use JUnit 5
-- Test file naming: `{ClassName}Test.kt`
-- Use `@WebMvcTest` for controller tests
-- Mock dependencies with Mockito
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest("GET", "/api/v1/displays/"+tt.displayID, nil)
 
-```kotlin
-@WebMvcTest(DisplayController::class)
-class DisplayControllerTest {
-    
-    @Autowired
-    private lateinit var mockMvc: MockMvc
-    
+			handler.ServeHTTP(w, r)
+
+			if w.Code != tt.expectedStatus {
+				t.Errorf("expected %d, got %d", tt.expectedStatus, w.Code)
+			}
+		})
+
     @MockBean
     private lateinit var service: DisplayService
-    
+
     @Test
     fun `GET existing display returns 200`() {
         // Arrange
         val display = Display(...)
         whenever(service.getDisplay("demo")).thenReturn(display)
-        
+
         // Act & Assert
         mockMvc.get("/api/v1/displays/demo")
             .andExpect { status { isOk() } }
             .andExpect { jsonPath("$.id") { value("demo") } }
     }
+}main.go
+
+- Use constants for configuration (Phase 1)
+- Pass config via struct fields to handlers (Phase 2)
+- Use environment variables for sensitive data (Phase 2+)
+
+```go
+const (
+	Port = ":8080"
+	AllowedOrigin = "http://localhost:5173"
+)
+
+func main() {
+	handler := &DisplayHandler{
+		service: &DisplayService{},
+	}
+
+	http.ListenAndServe(Port, corsMiddleware(handler))
 }
-```
+````
 
-## Configuration
+### CORS Middleware
 
-### application.yaml
+- Create simple middleware for CORS headers
+- Keep Phase 1 minimal
 
-- Use YAML over properties
-- Organize by Spring profile when needed
-- Document non-obvious settings with comments
+```go
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-```yaml
-spring:
-  application:
-    name: splitflap-api
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+		Go stdlib only (`net/http`, `encoding/json`, `testing`)
+- No external packages
 
-server:
-  port: 8080
-```
+### Don't Add Yet
 
-### Config Classes
-
-- Use `@Configuration` + `@Bean` for custom beans
-- Implement `WebMvcConfigurer` for MVC customization
-
-```kotlin
-@Configuration
-class CorsConfig : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/api/**")
-            .allowedOrigins("http://localhost:5173")
-            .allowedMethods("GET")
+- ❌ Database drivers (Phase 2)
+- ❌ WebSocket libraries (Phase 5)
+- ❌ Authentication packages (Phase 8)
+- ❌ Third-party frameworks
     }
 }
 ```
@@ -195,51 +245,58 @@ class CorsConfig : WebMvcConfigurer {
 
 - `spring-boot-starter-web`
 - `jackson-module-kotlin`
-- `spring-boot-starter-test`
+- `sprcomment on type/function for exported items
 
-### Don't Add Yet
-
-- ❌ Database dependencies (Phase 2)
-- ❌ WebSocket dependencies (Phase 5)
-- ❌ Security dependencies (Phase 8)
-
-## Code Comments
-
-- Avoid obvious comments
-- Document "why" not "what"
-- Use KDoc for public APIs
-
-```kotlin
+````go
 // ❌ Bad: Obvious
 // Get display by ID
-fun getDisplay(id: String): Display?
+func (s *DisplayService) GetDisplay(id string) *Display
 
 // ✅ Good: Explains decision
+// GetDisplay returns the display with the given ID.
 // Phase 1: Hardcoded data. Phase 2 will query database.
-fun getDisplay(id: String): Display? = demoDisplay.takeIf { it.id == id }
+func (s *DisplayService) GetDisplay(id string) *Display {
+	return demoDisplay
+Go-Specific
+
+### Nil Safety
+
+- Check for nil explicitly
+- Use `if err != nil` pattern for errors
+- Return nil for missing values in Phase 1
+
+```go
+// ✅ Good
+display := s.GetDisplay(id)
+if display == nil {
+	w.WriteHeader(http.StatusNotFound)
+	return
+}
+
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(display)
+````
+
+### Interfaces
+
+- Use interfaces for loose coupling
+- Define interfaces where they're used
+- Keep interfaces small (1-3 methods)
+
+```go
+type DisplayFetcher interface {
+	GetDisplay(id string) *Display
+}
 ```
 
-## Kotlin-Specific
+### Error Handling
 
-### Null Safety
+- Use explicit error returns
+- Don't panic in production code
+- Log errors before returning
+  return ResponseEntity.notFound().build()
+  }
 
-- Prefer non-nullable types
-- Use `?.let {}` for null-safe operations
-- Use `?:` (Elvis) for default values
-
-```kotlin
-// ✅ Good
-service.getDisplay(id)
-    ?.let { ResponseEntity.ok(it) }
-    ?: ResponseEntity.notFound().build()
-
-// ❌ Avoid
-val display = service.getDisplay(id)
-if (display != null) {
-    return ResponseEntity.ok(display)
-} else {
-    return ResponseEntity.notFound().build()
-}
 ```
 
 ### Data Classes
@@ -259,12 +316,14 @@ if (display != null) {
 Use conventional commits:
 
 ```
+
 feat(api): add GET /v1/displays/{id} endpoint
 fix(api): return 404 for missing displays
 test(api): add controller tests for display endpoint
 refactor(api): extract display validation logic
 docs(api): update API.md with error responses
-```
+
+````
 
 ## Phase Discipline
 
@@ -290,4 +349,4 @@ private val demoDisplay = Display(
 interface DisplayRepository {
     fun findById(id: String): Display?
 }
-```
+````

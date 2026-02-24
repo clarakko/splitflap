@@ -22,40 +22,40 @@ Employer-mandated GenAI/LLM/Agentic training. Now that global scale corporate pl
 ```
 
 splitflap/
-|__ splitflap-api/    # Kotlin + Spring Boot backend
-|__ splitflap-web/    # React builder app
-|__ splitflap-embed/  # Web component for embedding displays
-|__ docs/             # Architecture, API specs, data model
+|__ splitflap-api-go/       # Go backend
+|__ splitflap-web-solid/    # SolidJS builder app
+|__ splitflap-embed/        # Web component for embedding displays
+|__ docs/                   # Architecture, API specs, data model
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Jave 21+
+- Go 1.24.3+
 - Node.js 24+
 
 ### Run the API
 
 ```sh
-cd splitflap-api
-./gradlew bootRun
+cd splitflap-api-go
+go run ./cmd/api/main.go
 ```
 
 ### Run the Builder Web App
 
 ```sh
-cd splitflap-web
-npm install
-npm run dev
+cd splitflap-web-solid
+pnpm install
+pnpm dev
 ```
 
 ### Build the embed component
 
 ```sh
 cd splitflap-embed
-npm install
-npm run build
+pnpm install
+pnpm build
 ```
 
 ## Documentation
