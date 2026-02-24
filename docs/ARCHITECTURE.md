@@ -15,11 +15,11 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 │  splitflap-api-go     │  Go stdlib backend
 │    (Port 8080)        │
 └──────────┬────────────┘
-           │ (Phase 2: SQL)
+           │ SQL (Phase 2+)
            ▼
 ┌───────────────────────┐
-│   Database            │  H2 (dev) / Postgres (prod)
-│                       │  Not used in Phase 1
+│   Database            │  SQLite (data/splitflap.db)
+│                       │  Repository pattern enables Postgres migration
 └───────────────────────┘
 
 ┌─────────────────┐
@@ -49,7 +49,7 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 
 ### Out of Scope
 
-- ❌ Database persistence (Phase 2)
+- ✅ Database persistence (Phase 2 - SQLite with repository pattern)
 - ❌ Display CRUD operations (Phase 2)
 - ❌ SolidJS builder UI (Phase 2-3)
 - ❌ Web component embed (Phase 4)
@@ -118,7 +118,7 @@ splitflap-api-go/
 #### Service Layer
 - Business logic (currently minimal)
 - Data retrieval (hardcoded in Phase 1)
-- Phase 2: Database interaction via repositories
+- Phase 2: Database interaction via repositories (✅ implemented with SQLite)
 
 #### Model Layer
 - Data transfer objects matching API spec

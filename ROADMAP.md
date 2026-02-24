@@ -10,9 +10,11 @@
 
 ## Phase 2: Persistence
 
-- [ ] Database setup (H2 for dev, Postgres for prod)
-- [ ] Display entity and repository
-- [ ] CRUD endpoints for displays
+- [X] Database setup (SQLite)
+- [X] Display entity and repository
+- [X] CRUD endpoints for displays
+
+> **Architecture Decision**: Using SQLite for both development and production. Provides zero-config setup, sufficient scale for split-flap displays (read-heavy workload), and keeps migration path to Postgres open via repository pattern if needed in Phase 8.
 
 ## Phase 3: Builder
 

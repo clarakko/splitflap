@@ -42,6 +42,8 @@ cd splitflap-api-go
 go run ./cmd/api/main.go
 ```
 
+The API uses SQLite for persistence. The database file will be automatically created at `./data/splitflap.db` on first run, and the demo display will be seeded. No additional setup required!
+
 ### Run the Builder Web App
 
 ```sh

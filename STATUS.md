@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-Phase 1: MVP ✅ COMPLETE
+Phase 2: Persistence ✅ COMPLETE
 
 ## Current Task
 
-None - Phase 1 complete, ready for Phase 2
+None - Phase 2 complete, ready for Phase 3
 
 ## Done
 
@@ -21,6 +21,12 @@ None - Phase 1 complete, ready for Phase 2
 - Create first REST endpoint
 - Frontend displays raw data from GET /v1/displays/{id} endpoint
 - Basic flip animation in SolidJS (SplitFlapCell + SplitFlapDisplay components)
+- SQLite database integration
+- Repository pattern implementation
+- CRUD REST endpoints (GET, POST, PUT, DELETE)
+- Database schema with constraints validation
+- Comprehensive test coverage (repository + handler tests)
+- Database seeding with demo display
 
 ## In Progress
 
@@ -32,5 +38,5 @@ None - Phase 1 complete, ready for Phase 2
 
 ## Next up
 
-- Build basic flip animation component
+- Phase 3: Builder UI for configuring displays
   

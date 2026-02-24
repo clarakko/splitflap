@@ -1,36 +1,40 @@
 package service
 
-import "splitflap-api-go/internal/model"
+import (
+	"splitflap-api-go/internal/model"
+	"splitflap-api-go/internal/repository"
+)
 
 type DisplayService struct {
-	demoDisplay model.Display
+	repo repository.DisplayRepository
 }
 
-func NewDisplayService() *DisplayService {
+func NewDisplayService(repo repository.DisplayRepository) *DisplayService {
 	return &DisplayService{
-		demoDisplay: model.Display{
-			ID: "demo",
-			Content: model.DisplayContent{
-				Rows: [][]string{
-					{"H", "E", "L", "L", "O", " ", "W", "O", "R", "L"},
-					{"D", " ", "S", "P", "L", "I", "T", "F", "L", "A"},
-					{"P", " ", "D", "I", "S", "P", "L", "A", "Y", " "},
-					{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
-					{"-", ":", ".", ",", " ", "A", "Z", "a", "z", "!"},
-				},
-			},
-			Config: model.DisplayConfig{
-				RowCount:    5,
-				ColumnCount: 10,
-			},
-		},
+		repo: repo,
 	}
 }
 
 func (s *DisplayService) GetDisplay(id string) *model.Display {
-	if id != s.demoDisplay.ID {
+	display, err := s.repo.GetByID(id)
+	if err != nil {
 		return nil
 	}
+	return display
+}
 
-	return &s.demoDisplay
+func (s *DisplayService) CreateDisplay(display *model.Display) error {
+	return s.repo.Create(display)
+}
+
+func (s *DisplayService) UpdateDisplay(display *model.Display) error {
+	return s.repo.Update(display)
+}
+
+func (s *DisplayService) DeleteDisplay(id string) error {
+	return s.repo.Delete(id)
+}
+
+func (s *DisplayService) ListDisplays() ([]*model.Display, error) {
+	return s.repo.List()
 }
