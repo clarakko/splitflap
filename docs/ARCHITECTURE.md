@@ -12,7 +12,7 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
          │ HTTP REST
          ▼
 ┌─────────────────┐
-│ splitflap-api   │  Kotlin/Spring Boot backend
+│ splitflap-api   │  Go stdlib backend
 │   (Port 8080)   │
 └────────┬────────┘
          │ (Phase 2: JPA)
@@ -65,13 +65,10 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
-| Kotlin | 2.2.21 | Primary language |
-| Spring Boot | 4.0.0 | Web framework |
-| Spring Web MVC | (included) | REST endpoints |
-| Jackson Kotlin | (included) | JSON serialization |
-| Spring Data JPA | (included) | Phase 2: Database access |
-| H2 Database | (included) | Phase 2: In-memory dev database |
-| JUnit 5 | (included) | Testing |
+| Go | 1.22 | Primary language |
+| net/http | (stdlib) | REST endpoints |
+| encoding/json | (stdlib) | JSON serialization |
+| testing | (stdlib) | Unit and contract tests |
 
 ### Frontend (splitflap-web) - Phase 2+
 
@@ -95,23 +92,24 @@ SplitFlap is a three-tier web application for creating and embedding animated sp
 ### Package Structure
 
 ```
-dev.clarakko.splitflap_api/
-├── SplitflapApiApplication.kt       # Spring Boot entry point
-├── controller/
-│   └── DisplayController.kt         # REST endpoints
-├── service/
-│   └── DisplayService.kt            # Business logic (in-memory data)
-├── dto/
-│   ├── Display.kt                   # Response DTO
-│   ├── DisplayContent.kt            # Content DTO
-│   └── DisplayConfig.kt             # Config DTO
-└── config/
-    └── CorsConfig.kt                # CORS settings
+splitflap-api-go/
+├── cmd/
+│   └── api/
+│       └── main.go                  # HTTP server entry point
+├── internal/
+│   ├── handler/
+│   │   └── display_handler.go       # REST endpoints
+│   ├── service/
+│   │   └── display_service.go       # Business logic (in-memory data)
+│   ├── model/
+│   │   └── display.go               # Response DTO
+│   └── middleware/
+│       └── cors.go                  # CORS settings
 ```
 
 ### Layer Responsibilities
 
-#### Controller Layer
+#### Handler Layer
 - HTTP request/response handling
 - Path variable extraction (`/displays/{id}`)
 - Status code mapping (200, 404, 500)
@@ -122,9 +120,9 @@ dev.clarakko.splitflap_api/
 - Data retrieval (hardcoded in Phase 1)
 - Phase 2: Database interaction via repositories
 
-#### DTO Layer
+#### Model Layer
 - Data transfer objects matching API spec
-- JSON serialization via Jackson
+- JSON serialization via encoding/json
 - No business logic
 
 ### Data Flow (Phase 1)
@@ -145,20 +143,18 @@ dev.clarakko.splitflap_api/
 
 ### Error Handling
 
-```kotlin
-@RestController
-@RequestMapping("/api/v1/displays")
-class DisplayController(private val service: DisplayService) {
-    
-    @GetMapping("/{id}")
-    fun getDisplay(@PathVariable id: String): ResponseEntity<Display> {
-        val display = service.getDisplay(id)
-        return if (display != null) {
-            ResponseEntity.ok(display)
-        } else {
-            ResponseEntity.notFound().build()
-        }
-    }
+```go
+func (h *DisplayHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+  id := strings.TrimPrefix(r.URL.Path, "/api/v1/displays/")
+  display := h.service.GetDisplay(id)
+  if display == nil {
+    w.WriteHeader(http.StatusNotFound)
+    return
+  }
+
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(http.StatusOK)
+  json.NewEncoder(w).Encode(display)
 }
 ```
 

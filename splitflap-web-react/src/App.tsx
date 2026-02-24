@@ -1,34 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import { useFetchDisplay } from './hooks/useFetchDisplay'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { data, loading, error } = useFetchDisplay('demo')
+
+  if (loading) {
+    return (
+      <div className="container">
+        <h1>SplitFlap Display</h1>
+        <p>Loading display data...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container">
+        <h1>SplitFlap Display</h1>
+        <div className="error">
+          <h2>Error</h2>
+          <p>{error.message}</p>
+          {error.statusCode && <p>Status Code: {error.statusCode}</p>}
+        </div>
+      </div>
+    )
+  }
+
+  if (!data) {
+    return (
+      <div className="container">
+        <h1>SplitFlap Display</h1>
+        <p>No display data available</p>
+      </div>
+    )
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="container">
+      <h1>SplitFlap Display</h1>
+      
+      <div className="display-info">
+        <h2>Display ID: {data.id}</h2>
+        <p>Rows: {data.config.rowCount} | Columns: {data.config.columnCount}</p>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+
+      <div className="display-content">
+        <h3>Content:</h3>
+        <table>
+          <tbody>
+            {data.content.rows.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex}>{cell}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </div>
   )
 }
 

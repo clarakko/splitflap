@@ -22,7 +22,7 @@ Project scaffolding
 
 ## In Progress
 
-- Setup React + Vite minimalist front-end
+- front end displays raw data from GET /v1/displays/{id} endpoint.
   
 ## Blocked
 

@@ -22,7 +22,7 @@ None (Phase 8 will add authentication)
 
 ## Endpoints
 
-### GET /v1/displays/{id}
+### GET /api/v1/displays/{id}
 
 Retrieve a display configuration and content by ID.
 
@@ -42,12 +42,14 @@ Retrieve a display configuration and content by ID.
   "content": {
     "rows": [
       ["TIME", "DESTINATION", "PLATFORM", "STATUS"],
-      ["10:30", "OTTAWA", "3", "ON TIME"],
-      ["10:45", "HALIFAX", "5", "DELAYED"]
+      ["10:30", "BOSTON", "3", "ON TIME"],
+      ["10:45", "NEW YORK", "5", "DELAYED"],
+      ["11:00", "PHILADELPHIA", "7", "BOARDING"],
+      ["11:15", "WASHINGTON", "2", "ON TIME"]
     ]
   },
   "config": {
-    "rowCount": 3,
+    "rowCount": 5,
     "columnCount": 4
   }
 }
@@ -55,11 +57,8 @@ Retrieve a display configuration and content by ID.
 
 **Status: 404 Not Found**
 
-```json
-{
-  "error": "Display not found",
-  "id": "unknown-id"
-}
+```
+(no response body)
 ```
 
 #### Example Request
@@ -104,7 +103,7 @@ curl http://localhost:8080/api/v1/displays/demo
 
 ## Error Responses
 
-All errors follow this format:
+All errors follow this format in Phase 2+:
 
 ```json
 {
@@ -118,7 +117,7 @@ All errors follow this format:
 | Code | Meaning | When Used |
 |------|---------|-----------|
 | 200 | OK | Successful GET |
-| 404 | Not Found | Display ID doesn't exist |
+| 404 | Not Found | Display ID doesn't exist (empty body in Phase 1) |
 | 500 | Internal Server Error | Unexpected server error |
 
 ---
@@ -127,12 +126,12 @@ All errors follow this format:
 
 Not implemented in Phase 1:
 
-- `POST /v1/displays` - Create new display
-- `PUT /v1/displays/{id}` - Update display content
-- `DELETE /v1/displays/{id}` - Delete display
-- `GET /v1/displays` - List all displays
-- `PATCH /v1/displays/{id}` - Partial update (Phase 5)
-- WebSocket `/ws/v1/displays/{id}` - Real-time updates (Phase 5)
+- `POST /api/v1/displays` - Create new display
+- `PUT /api/v1/displays/{id}` - Update display content
+- `DELETE /api/v1/displays/{id}` - Delete display
+- `GET /api/v1/displays` - List all displays
+- `PATCH /api/v1/displays/{id}` - Partial update (Phase 5)
+- WebSocket `/ws/api/v1/displays/{id}` - Real-time updates (Phase 5)
 
 ---
 
@@ -162,45 +161,50 @@ Content-Type: application/json
 
 ### Phase 1 Backend Structure
 
-```kotlin
-// Controller
-@RestController
-@RequestMapping("/api/v1/displays")
-class DisplayController(private val displayService: DisplayService)
+```go
+// Handler
+mux.Handle("/api/v1/displays/", displayHandler)
 
 // Service (in-memory data)
-@Service
-class DisplayService {
-    fun getDisplay(id: String): Display?
+type DisplayService struct {
+  demoDisplay model.Display
 }
 
-// DTOs
-data class Display(
-    val id: String,
-    val content: DisplayContent,
-    val config: DisplayConfig
-)
+func (s *DisplayService) GetDisplay(id string) *model.Display
 
-data class DisplayContent(val rows: List<List<String>>)
-data class DisplayConfig(val rowCount: Int, val columnCount: Int)
+// DTOs
+type Display struct {
+  ID      string         `json:"id"`
+  Content DisplayContent `json:"content"`
+  Config  DisplayConfig  `json:"config"`
+}
+
+type DisplayContent struct {
+  Rows [][]string `json:"rows"`
+}
+
+type DisplayConfig struct {
+  RowCount    int `json:"rowCount"`
+  ColumnCount int `json:"columnCount"`
+}
 ```
 
 ### Hardcoded Demo Data
 
-```kotlin
-private val demoDisplay = Display(
-    id = "demo",
-    content = DisplayContent(
-        rows = listOf(
-            listOf("TIME", "DESTINATION", "PLATFORM", "STATUS"),
-            listOf("10:30", "BOSTON", "3", "ON TIME"),
-            listOf("10:45", "NEW YORK", "5", "DELAYED"),
-            listOf("11:00", "PHILADELPHIA", "7", "BOARDING"),
-            listOf("11:15", "WASHINGTON", "2", "ON TIME")
-        )
-    ),
-    config = DisplayConfig(rowCount = 5, columnCount = 4)
-)
+```go
+demoDisplay := model.Display{
+  ID: "demo",
+  Content: model.DisplayContent{
+    Rows: [][]string{
+      {"TIME", "DESTINATION", "PLATFORM", "STATUS"},
+      {"10:30", "BOSTON", "3", "ON TIME"},
+      {"10:45", "NEW YORK", "5", "DELAYED"},
+      {"11:00", "PHILADELPHIA", "7", "BOARDING"},
+      {"11:15", "WASHINGTON", "2", "ON TIME"},
+    },
+  },
+  Config: model.DisplayConfig{RowCount: 5, ColumnCount: 4},
+}
 ```
 
 ---
