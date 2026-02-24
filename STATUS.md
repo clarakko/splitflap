@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-Phase 2: Persistence ✅ COMPLETE
+Phase 2.5: Display Management
 
 ## Current Task
 
-None - Phase 2 complete, ready for Phase 3
+Defining Phase 2.5 scope and requirements
 
 ## Done
 
@@ -38,5 +38,10 @@ None - Phase 2 complete, ready for Phase 3
 
 ## Next up
 
-- Phase 3: Builder UI for configuring displays
+- Display list view component
+- Display selector/switcher component
+- Create display form
+- Edit display grid
+- Delete display functionality
+- Remove hardcoded 'demo' display ID from DisplayPreview
   
