@@ -3,10 +3,10 @@
 ## Phase 1: MVP
 
 - [X] Backend serves display content via REST endpoint
-- [ ] Frontend fetches and displays data from API
-- [ ] Basic flip animation in SolidJS
-- [ ] Single display with hardcoded rows
-- [ ] Frontend renders split-flap animation
+- [X] Frontend fetches and displays data from API
+- [X] Basic flip animation in SolidJS
+- [X] Single display with hardcoded rows
+- [X] Frontend renders split-flap animation
 
 ## Phase 2: Persistence
 

@@ -22,21 +22,22 @@ Contains the actual data shown on the display as a 2D grid.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `rows` | List<List<String>> | 2D array of strings, each cell is one character or short string |
+| `rows` | List<List<String>> | 2D array of single-character strings |
 
-**Rules (Phase 1):**
+**Rules (Phase 1 MVP):**
 
-- Each string represents one "flap unit" (typically 1-10 characters)
-- Alphanumeric characters only: `A-Z`, `0-9`, space, and basic punctuation (`.`, `,`, `:`, `-`)
-- Empty cells represented as empty string `""`
+- **Each cell contains exactly one character**
+- Supported characters: `A-Z`, `0-9`, space, and basic punctuation (`.`, `,`, `:`, `-`)
+- Empty cells represented as space `" "`
 - All rows must have same length (columnCount)
+- Total cells = rowCount × columnCount
 
-**Character Set Evolution (Phase 3+):**
+**Future Enhancement (Phase 3+):**
 
-- Phase 3 will add `characterSet` config field (e.g., `"alphanumeric"`, `"numeric"`, `"custom"`)
-- Future phases may support image-based character sets (e.g., airline logos, weather icons)
-- Image sets require different rendering: sprite sheets or image URLs instead of text
-- Cell values would reference image identifiers (e.g., `"LOGO_AA"`, `"ICON_SUNNY"`)
+- Phase 3 will add `characterSet` config field for different character sets
+- Phase 3+ may support multi-character cells (words, numbers, symbols on single flap)
+- Future phases may support image-based cells (e.g., airline logos, weather icons)
+- Image cells would reference identifiers instead of character strings
 
 #### DisplayConfig
 
@@ -52,42 +53,46 @@ Configuration for display dimensions and behavior.
 - rowCount: 1-20
 - columnCount: 1-10
 
-### Example: Departure Board Display
+### Example: Phase 1 MVP Display (Single-Character Cells)
 
 ```json
 {
   "id": "demo",
   "content": {
     "rows": [
-      ["TIME", "DESTINATION", "PLATFORM", "STATUS"],
-      ["10:30", "BOSTON", "3", "ON TIME"],
-      ["10:45", "NEW YORK", "5", "DELAYED"],
-      ["11:00", "PHILADELPHIA", "7", "BOARDING"],
-      ["11:15", "WASHINGTON", "2", "ON TIME"]
+      ["H", "E", "L", "L", "O", " ", "W", "O", "R", "L"],
+      ["D", " ", "S", "P", "L", "I", "T", "F", "L", "A"],
+      ["P", " ", "D", "I", "S", "P", "L", "A", "Y", " "],
+      ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+      ["-", ":", ".", ",", " ", "A", "Z", "a", "z", "!"]
     ]
   },
   "config": {
     "rowCount": 5,
-    "columnCount": 4
+    "columnCount": 10
   }
 }
 ```
 
-### Example: Scoreboard Display
+**Note:** Each cell contains exactly one character. This is the Phase 1 MVP constraint. Future phases may support multi-character cells (Phase 3+) or image-based cells (Phase 4+).
+
+### Future: Departure Board Example (Phase 3+)
+
+Once we support multi-character cells and custom formatting, displays could look like:
 
 ```json
 {
-  "id": "demo",
+  "id": "board-1",
   "content": {
     "rows": [
-      ["", "Q1", "Q2", "Q3", "Q4", "TOTAL"],
-      ["HOME", "21", "14", "", "", "35"],
-      ["AWAY", "17", "10", "", "", "27"]
+      ["10:30", "BOSTON", "3"],
+      ["10:45", "NEW YORK", "5"],
+      ["11:00", "PHILADELPHIA", "7"]
     ]
   },
   "config": {
     "rowCount": 3,
-    "columnCount": 6
+    "columnCount": 3
   }
 }
 ```

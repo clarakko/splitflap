@@ -12,16 +12,16 @@ func NewDisplayService() *DisplayService {
 			ID: "demo",
 			Content: model.DisplayContent{
 				Rows: [][]string{
-					{"TIME", "DESTINATION", "PLATFORM", "STATUS"},
-					{"10:30", "OTTAWA", "3", "ON TIME"},
-					{"10:45", "VANCOUVER", "5", "DELAYED"},
-					{"11:00", "MONTREAL", "7", "BOARDING"},
-					{"11:15", "HALIFAX", "2", "ON TIME"},
+					{"H", "E", "L", "L", "O", " ", "W", "O", "R", "L"},
+					{"D", " ", "S", "P", "L", "I", "T", "F", "L", "A"},
+					{"P", " ", "D", "I", "S", "P", "L", "A", "Y", " "},
+					{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
+					{"-", ":", ".", ",", " ", "A", "Z", "a", "z", "!"},
 				},
 			},
 			Config: model.DisplayConfig{
 				RowCount:    5,
-				ColumnCount: 4,
+				ColumnCount: 10,
 			},
 		},
 	}

@@ -1,6 +1,7 @@
 import { Show, Suspense } from 'solid-js';
 import { createSignal } from 'solid-js';
 import { createFetchDisplay } from '../../hooks/createFetchDisplay';
+import { SplitFlapDisplay } from '../SplitFlapDisplay/SplitFlapDisplay';
 import styles from './DisplayPreview.module.css';
 
 interface DisplayPreviewProps {
@@ -26,7 +27,7 @@ export function DisplayPreview(props: DisplayPreviewProps) {
         >
           {(data) => (
             <div class={styles.content}>
-              <pre>{JSON.stringify(data(), null, 2)}</pre>
+              <SplitFlapDisplay display={data()} />
             </div>
           )}
         </Show>

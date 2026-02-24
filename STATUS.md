@@ -2,11 +2,11 @@
 
 ## Current Phase
 
-Phase 1: MVP
+Phase 1: MVP ✅ COMPLETE
 
 ## Current Task
 
-Project scaffolding
+None - Phase 1 complete, ready for Phase 2
 
 ## Done
 
@@ -19,10 +19,12 @@ Project scaffolding
 - SolidJS Project initialization (splitflap-web-solid)
 - Define initial data model
 - Create first REST endpoint
+- Frontend displays raw data from GET /v1/displays/{id} endpoint
+- Basic flip animation in SolidJS (SplitFlapCell + SplitFlapDisplay components)
 
 ## In Progress
 
-- front end displays raw data from GET /v1/displays/{id} endpoint.
+- None
   
 ## Blocked
 
