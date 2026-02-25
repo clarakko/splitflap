@@ -1,7 +1,7 @@
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 
-import { DisplayPreview } from './components/DisplayPreview/DisplayPreview';
+import { App } from './components/App';
 
 const root = document.getElementById('root');
 
@@ -11,4 +11,4 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
-render(() => <DisplayPreview />, root!);
+render(() => <App />, root!);
