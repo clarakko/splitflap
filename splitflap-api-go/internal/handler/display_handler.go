@@ -191,10 +191,10 @@ func validateDisplay(display *model.Display) error {
 		if len(row) != display.Config.ColumnCount {
 			return errors.New("row " + string(rune(i)) + " column count must match columnCount")
 		}
-		// Validate each cell is a single character
+		// Validate each cell is 0 or 1 characters (empty or single character)
 		for j, cell := range row {
-			if len(cell) != 1 {
-				return errors.New("cell at row " + string(rune(i)) + " column " + string(rune(j)) + " must be a single character")
+			if len(cell) > 1 {
+				return errors.New("cell at row " + string(rune(i)) + " column " + string(rune(j)) + " must be 0 or 1 characters")
 			}
 		}
 	}
