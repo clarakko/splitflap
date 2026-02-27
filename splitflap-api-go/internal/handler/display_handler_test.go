@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"splitflap-api-go/internal/middleware"
@@ -380,6 +381,51 @@ func TestUpdateDisplay_IDMismatch(t *testing.T) {
 	}
 }
 
+func TestUpdateDisplay_NoTrailingSlash(t *testing.T) {
+	handler, repo := newTestHandler(t)
+
+	display := createTestDisplay("test-update-no-slash")
+	if err := repo.Create(display); err != nil {
+		t.Fatalf("failed to create display: %v", err)
+	}
+
+	// Update the display
+	display.Content.Rows[0][0] = "X"
+	body, _ := json.Marshal(display)
+
+	// PUT without trailing slash - this was failing with 404 before the CORS fix
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/displays/test-update-no-slash", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var updated model.Display
+	if err := json.Unmarshal(rec.Body.Bytes(), &updated); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+
+	if updated.Content.Rows[0][0] != "X" {
+		t.Fatalf("expected first cell to be 'X', got %q", updated.Content.Rows[0][0])
+	}
+
+	// Verify it was actually persisted to the database
+	retrieved, err := repo.GetByID("test-update-no-slash")
+	if err != nil {
+		t.Fatalf("failed to retrieve updated display from database: %v", err)
+	}
+	if retrieved == nil {
+		t.Fatalf("expected display to be persisted, but got nil")
+	}
+	if retrieved.Content.Rows[0][0] != "X" {
+		t.Fatalf("expected persisted display's first cell to be 'X', got %q", retrieved.Content.Rows[0][0])
+	}
+}
+
 func TestDeleteDisplay(t *testing.T) {
 	handler, repo := newTestHandler(t)
 
@@ -417,6 +463,31 @@ func TestDeleteDisplay_NotFound(t *testing.T) {
 	}
 }
 
+func TestDeleteDisplay_NoTrailingSlash(t *testing.T) {
+	handler, repo := newTestHandler(t)
+
+	display := createTestDisplay("test-delete-no-slash")
+	if err := repo.Create(display); err != nil {
+		t.Fatalf("failed to create display: %v", err)
+	}
+
+	// DELETE without trailing slash - should work correctly
+	req := httptest.NewRequest(http.MethodDelete, "/api/v1/displays/test-delete-no-slash", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("expected status 204, got %d", rec.Code)
+	}
+
+	// Verify it was deleted
+	_, err := repo.GetByID("test-delete-no-slash")
+	if err != repository.ErrNotFound {
+		t.Fatalf("expected display to be deleted, but got: %v", err)
+	}
+}
+
 func TestCORSAllowedOrigin(t *testing.T) {
 	handler, _ := newTestHandler(t)
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/displays/", nil)
@@ -428,4 +499,51 @@ func TestCORSAllowedOrigin(t *testing.T) {
 	if origin := rec.Header().Get("Access-Control-Allow-Origin"); origin != "http://localhost:5173" {
 		t.Fatalf("expected Access-Control-Allow-Origin to echo origin, got %q", origin)
 	}
+}
+
+func TestCORSAllowedMethods(t *testing.T) {
+	handler, _ := newTestHandler(t)
+	req := httptest.NewRequest(http.MethodOptions, "/api/v1/displays", nil)
+	req.Header.Set("Origin", "http://localhost:5173")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("expected status 204, got %d", rec.Code)
+	}
+
+	methods := rec.Header().Get("Access-Control-Allow-Methods")
+	if methods == "" {
+		t.Fatalf("expected Access-Control-Allow-Methods header, got empty")
+	}
+
+	// Verify all required methods are allowed
+	requiredMethods := []string{"GET", "POST", "PUT", "DELETE"}
+	for _, method := range requiredMethods {
+		if !contains(methods, method) {
+			t.Fatalf("expected %s in Access-Control-Allow-Methods, got %q", method, methods)
+		}
+	}
+}
+
+func contains(s, substr string) bool {
+	// Simple substring check for methods in comma-separated list
+	start := 0
+	for {
+		idx := strings.Index(s[start:], substr)
+		if idx == -1 {
+			return false
+		}
+		idx += start
+		// Check it's a complete word (surrounded by non-alphanumeric or boundaries)
+		if (idx == 0 || !isAlpha(rune(s[idx-1]))) && (idx+len(substr) >= len(s) || !isAlpha(rune(s[idx+len(substr)]))) {
+			return true
+		}
+		start = idx + 1
+	}
+}
+
+func isAlpha(r rune) bool {
+	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z')
 }
