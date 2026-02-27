@@ -12,7 +12,7 @@ import (
 	"splitflap-api-go/internal/service"
 )
 
-const displayBasePath = "/api/v1/displays/"
+const displayBasePath = "/api/v1/displays"
 
 type DisplayHandler struct {
 	service *service.DisplayService
@@ -29,6 +29,8 @@ func (h *DisplayHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id := strings.TrimPrefix(r.URL.Path, displayBasePath)
+	// Remove leading slash from id if present (e.g., "/test-1" becomes "test-1")
+	id = strings.TrimPrefix(id, "/")
 
 	// Route based on method and whether ID is present
 	switch r.Method {

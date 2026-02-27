@@ -5,7 +5,7 @@ help:
 	@echo "SplitFlap Project Commands"
 	@echo ""
 	@echo "API Commands:"
-	@echo "  make api-start       - Start the Spring Boot API server"
+	@echo "  make api-start       - Start the Golang API server"
 	@echo "  make api-test        - Run API tests"
 	@echo ""
 	@echo "Frontend Commands:"
@@ -18,6 +18,10 @@ help:
 	@echo "  make clean           - Clean build artifacts"
 
 # API Commands
+api-build:
+	@echo "Building API server..."
+	cd splitflap-api-go && go build -o splitflap-api ./cmd/api
+	
 api-start:
 	@echo "Starting API server..."
 	cd splitflap-api-go && go run ./cmd/api

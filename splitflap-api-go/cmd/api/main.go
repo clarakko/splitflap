@@ -54,7 +54,7 @@ func main() {
 	displayHandler := handler.NewDisplayHandler(displayService)
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/v1/displays/", displayHandler)
+	mux.Handle("/api/v1/displays", displayHandler)
 
 	addr := ":8080"
 	if port := os.Getenv("PORT"); port != "" {

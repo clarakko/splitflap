@@ -168,6 +168,35 @@ func TestListDisplays(t *testing.T) {
 	}
 }
 
+func TestListDisplays_NoTrailingSlash(t *testing.T) {
+	handler, repo := newTestHandler(t)
+
+	// Create a display to list
+	display := createTestDisplay("test-1")
+	if err := repo.Create(display); err != nil {
+		t.Fatalf("failed to create display: %v", err)
+	}
+
+	// GET without trailing slash (the actual case used by frontend)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/displays", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", rec.Code)
+	}
+
+	var displays []*model.Display
+	if err := json.Unmarshal(rec.Body.Bytes(), &displays); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+
+	if len(displays) != 1 {
+		t.Fatalf("expected 1 display, got %d", len(displays))
+	}
+}
+
 func TestCreateDisplay(t *testing.T) {
 	handler, _ := newTestHandler(t)
 
@@ -191,6 +220,42 @@ func TestCreateDisplay(t *testing.T) {
 
 	if created.ID != "new-display" {
 		t.Fatalf("expected id new-display, got %q", created.ID)
+	}
+}
+
+func TestCreateDisplay_NoTrailingSlash(t *testing.T) {
+	handler, repo := newTestHandler(t)
+
+	display := createTestDisplay("new-display-no-slash")
+	body, _ := json.Marshal(display)
+
+	// POST without trailing slash - this was returning 301 before the fix
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/displays", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("expected status 201, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var created model.Display
+	if err := json.Unmarshal(rec.Body.Bytes(), &created); err != nil {
+		t.Fatalf("failed to parse response: %v", err)
+	}
+
+	if created.ID != "new-display-no-slash" {
+		t.Fatalf("expected id new-display-no-slash, got %q", created.ID)
+	}
+
+	// Verify it was actually persisted to the database
+	retrieved, err := repo.GetByID("new-display-no-slash")
+	if err != nil {
+		t.Fatalf("failed to retrieve created display from database: %v", err)
+	}
+	if retrieved == nil {
+		t.Fatalf("expected display to be persisted, but got nil")
 	}
 }
 
